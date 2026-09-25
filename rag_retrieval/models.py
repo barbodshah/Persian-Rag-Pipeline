@@ -16,6 +16,9 @@ class PageRecord:
     raw_text: str
     display_text: str
     search_text: str
+    book_id: str = "C110210"
+    book_title: str = "C110210"
+    source_file: str = "C110210.pdf"
     spans: list[dict[str, Any]] = field(default_factory=list)
     quality: dict[str, Any] = field(default_factory=dict)
 
@@ -36,6 +39,9 @@ class ChunkRecord:
     text: str
     search_text: str
     token_count: int
+    book_id: str = "C110210"
+    book_title: str = "C110210"
+    source_file: str = "C110210.pdf"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

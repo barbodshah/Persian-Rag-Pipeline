@@ -81,7 +81,12 @@ class DenseIndex:
         if any(len(vector) != self.dimension for vector in self.vectors):
             raise ValueError("Cached embeddings contain inconsistent dimensions.")
 
-    def search(self, query_vector: list[float], top_k: int = 10) -> list[DenseSearchResult]:
+    def search(
+        self,
+        query_vector: list[float],
+        top_k: int = 10,
+        allowed_doc_ids: set[str] | None = None,
+    ) -> list[DenseSearchResult]:
         if not self.vectors:
             return []
         query = _normalize(query_vector)
@@ -90,6 +95,7 @@ class DenseIndex:
         scored = [
             (doc_id, sum(left * right for left, right in zip(query, vector)))
             for doc_id, vector in zip(self.doc_ids, self.vectors)
+            if allowed_doc_ids is None or doc_id in allowed_doc_ids
         ]
         scored.sort(key=lambda item: (-item[1], item[0]))
         return [DenseSearchResult(chunk_id=doc_id, score=round(score, 8)) for doc_id, score in scored[:top_k]]

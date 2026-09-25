@@ -10,7 +10,7 @@ from .dense import DenseIndex
 from .persian import normalize_search, tokenize
 
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 RERANKER_VERSION = "weighted-hybrid-v1"
 
 
@@ -44,19 +44,35 @@ class RetrievalEngine:
         chunks: dict[str, dict[str, Any]],
         parents: dict[str, dict[str, Any]],
         dense: DenseIndex | None = None,
-        document_id: str = "C110210",
     ) -> None:
         self.bm25 = bm25
         self.chunks = chunks
         self.parents = parents
         self.dense = dense
-        self.document_id = document_id
+
+    @property
+    def book_ids(self) -> list[str]:
+        return sorted({str(chunk.get("book_id", "C110210")) for chunk in self.chunks.values()})
+
+    def _allowed_chunk_ids(self, book_id: str | None) -> set[str] | None:
+        if book_id is None:
+            return None
+        allowed = {
+            chunk_id
+            for chunk_id, chunk in self.chunks.items()
+            if str(chunk.get("book_id", "C110210")) == book_id
+        }
+        if not allowed:
+            available = ", ".join(self.book_ids) or "(none)"
+            raise ValueError(f"Unknown book_id {book_id!r}. Available books: {available}")
+        return allowed
 
     def retrieve(
         self,
         question: str,
         query_vector: list[float] | None = None,
         options: RetrievalOptions | None = None,
+        book_id: str | None = None,
     ) -> dict[str, Any]:
         options = options or RetrievalOptions()
         if options.mode not in {"bm25", "dense", "hybrid"}:
@@ -67,9 +83,22 @@ class RetrievalEngine:
         if needs_dense and query_vector is None:
             raise ValueError("Dense or hybrid mode requires a query embedding.")
 
-        bm25_results = self.bm25.search(question, top_k=options.candidate_k) if options.mode != "dense" else []
+        allowed_chunk_ids = self._allowed_chunk_ids(book_id)
+        bm25_results = (
+            self.bm25.search(
+                question,
+                top_k=options.candidate_k,
+                allowed_doc_ids=allowed_chunk_ids,
+            )
+            if options.mode != "dense"
+            else []
+        )
         dense_results = (
-            self.dense.search(query_vector or [], top_k=options.candidate_k)
+            self.dense.search(
+                query_vector or [],
+                top_k=options.candidate_k,
+                allowed_doc_ids=allowed_chunk_ids,
+            )
             if options.mode != "bm25" and self.dense is not None
             else []
         )
@@ -137,6 +166,7 @@ class RetrievalEngine:
         results: list[dict[str, Any]] = []
         for rank, item in enumerate(selected, start=1):
             chunk = self.chunks[item["chunk_id"]]
+            result_book_id = str(chunk.get("book_id", "C110210"))
             results.append(
                 {
                     "rank": rank,
@@ -145,7 +175,10 @@ class RetrievalEngine:
                     "score": item["scores"]["diversified"],
                     "scores": item["scores"],
                     "source": {
-                        "document_id": self.document_id,
+                        "book_id": result_book_id,
+                        "book_title": chunk.get("book_title", result_book_id),
+                        "source_file": chunk.get("source_file", f"{result_book_id}.pdf"),
+                        "document_id": result_book_id,
                         "chapter_id": chunk["chapter_id"],
                         "chapter_title": chunk["chapter_title"],
                         "section_heading": chunk.get("section_heading"),
@@ -167,6 +200,8 @@ class RetrievalEngine:
                 "rrf_k": options.rrf_k,
                 "embedding_model": self.dense.model if self.dense and needs_dense else None,
                 "reranker": RERANKER_VERSION,
+                "book_id": book_id,
+                "available_books": self.book_ids,
             },
             "results": results,
         }
@@ -182,11 +217,15 @@ class RetrievalEngine:
                 continue
             seen_parents.add(parent_id)
             parent = self.parents[parent_id]
-            citation_id = f"{self.document_id}:{parent_id}"
+            book_id = str(parent.get("book_id", "C110210"))
+            citation_id = parent_id if parent_id.startswith(f"{book_id}:") else f"{book_id}:{parent_id}"
             passages.append(
                 {
                     "citation_id": citation_id,
                     "parent_id": parent_id,
+                    "book_id": book_id,
+                    "book_title": parent.get("book_title", book_id),
+                    "source_file": parent.get("source_file", f"{book_id}.pdf"),
                     "chapter_title": parent["chapter_title"],
                     "pdf_pages": parent["pdf_pages"],
                     "book_pages": parent["book_pages"],

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .evaluate import retrieval_metrics
 from .retrieval import RetrievalEngine, RetrievalOptions
 
 
@@ -16,11 +17,18 @@ def evaluate_engine(
     if query_vectors is not None and len(query_vectors) != len(questions):
         raise ValueError("Question and query-vector counts differ.")
     ranks: list[int | None] = []
+    ranks_by_book: dict[str, list[int | None]] = {}
     details: list[dict[str, Any]] = []
     options = RetrievalOptions(top_k=10, candidate_k=30, mode=mode)
     for index, question in enumerate(questions):
         vector = query_vectors[index] if query_vectors is not None else None
-        response = engine.retrieve(question["question"], query_vector=vector, options=options)
+        book_id = str(question.get("book_id", "C110210"))
+        response = engine.retrieve(
+            question["question"],
+            query_vector=vector,
+            options=options,
+            book_id=book_id,
+        )
         relevant = set(question["relevant_pdf_pages"])
         rank = None
         for result in response["results"]:
@@ -28,18 +36,20 @@ def evaluate_engine(
                 rank = int(result["rank"])
                 break
         ranks.append(rank)
+        ranks_by_book.setdefault(book_id, []).append(rank)
         details.append(
             {
                 "id": question["id"],
+                "book_id": book_id,
                 "rank": rank,
                 "top_chunk_ids": [item["chunk_id"] for item in response["results"][:5]],
             }
         )
-    total = len(ranks) or 1
-    metrics: dict[str, Any] = {
-        f"recall@{cutoff}": round(sum(rank is not None and rank <= cutoff for rank in ranks) / total, 4)
-        for cutoff in (1, 3, 5, 10)
+    return {
+        "metrics": retrieval_metrics(ranks),
+        "metrics_by_book": {
+            book_id: retrieval_metrics(book_ranks)
+            for book_id, book_ranks in sorted(ranks_by_book.items())
+        },
+        "details": details,
     }
-    metrics["mrr@10"] = round(sum((1.0 / rank) if rank else 0.0 for rank in ranks) / total, 4)
-    metrics["question_count"] = len(ranks)
-    return {"metrics": metrics, "details": details}

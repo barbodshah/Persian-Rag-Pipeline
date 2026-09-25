@@ -88,12 +88,25 @@ def _layout_spans(page: Any) -> list[dict[str, Any]]:
     return spans
 
 
-def extract_book(pdf_path: Path) -> list[PageRecord]:
+def extract_book(
+    pdf_path: Path,
+    book_id: str | None = None,
+    book_title: str | None = None,
+    source_file: str | None = None,
+) -> list[PageRecord]:
+    book_id = book_id or pdf_path.stem
+    book_title = book_title or pdf_path.stem
+    source_file = source_file or pdf_path.name
+    is_c110210 = book_id.casefold() == "c110210"
     reader = PdfReader(str(pdf_path))
     pages: list[PageRecord] = []
     for index, page in enumerate(reader.pages, start=1):
-        chapter_id, chapter_title = chapter_for(index)
-        book_page = book_page_for(index)
+        if is_c110210:
+            chapter_id, chapter_title = chapter_for(index)
+            book_page = book_page_for(index)
+        else:
+            chapter_id, chapter_title = "document", book_title
+            book_page = index
         raw_text = page.extract_text() or ""
         display_text = _clean_page_text(raw_text, book_page)
         spans = _layout_spans(page)
@@ -107,6 +120,9 @@ def extract_book(pdf_path: Path) -> list[PageRecord]:
                 raw_text=raw_text,
                 display_text=display_text,
                 search_text=normalize_search(display_text),
+                book_id=book_id,
+                book_title=book_title,
+                source_file=source_file,
                 spans=spans,
                 quality={
                     "characters": len(display_text),

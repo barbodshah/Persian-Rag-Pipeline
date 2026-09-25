@@ -42,22 +42,38 @@ class BM25Index:
             sum(self.doc_lengths) / len(self.doc_lengths) if self.doc_lengths else 0.0
         )
 
-    def search(self, query: str, top_k: int = 10) -> list[SearchResult]:
+    def search(
+        self,
+        query: str,
+        top_k: int = 10,
+        allowed_doc_ids: set[str] | None = None,
+    ) -> list[SearchResult]:
         if not self.doc_ids or not self.average_length:
+            return []
+        allowed_indexes = {
+            index
+            for index, doc_id in enumerate(self.doc_ids)
+            if allowed_doc_ids is None or doc_id in allowed_doc_ids
+        }
+        if not allowed_indexes:
             return []
         query_terms = Counter(tokenize(query))
         scores: dict[int, float] = defaultdict(float)
-        document_count = len(self.doc_ids)
+        document_count = len(allowed_indexes)
+        average_length = sum(self.doc_lengths[index] for index in allowed_indexes) / document_count
         for term, query_frequency in query_terms.items():
             entries = self.postings.get(term)
             if not entries:
                 continue
-            document_frequency = len(entries)
+            filtered_entries = [entry for entry in entries if entry[0] in allowed_indexes]
+            if not filtered_entries:
+                continue
+            document_frequency = len(filtered_entries)
             inverse_document_frequency = math.log(
                 1.0 + (document_count - document_frequency + 0.5) / (document_frequency + 0.5)
             )
-            for doc_index, term_frequency in entries:
-                length_ratio = self.doc_lengths[doc_index] / self.average_length
+            for doc_index, term_frequency in filtered_entries:
+                length_ratio = self.doc_lengths[doc_index] / average_length
                 denominator = term_frequency + self.k1 * (1.0 - self.b + self.b * length_ratio)
                 scores[doc_index] += (
                     query_frequency

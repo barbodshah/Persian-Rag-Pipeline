@@ -15,6 +15,12 @@ class BM25Tests(unittest.TestCase):
         results = index.search("پیوند هیدروژنی آب")
         self.assertEqual(results[0].chunk_id, "water")
 
+    def test_search_can_be_limited_to_allowed_documents(self):
+        index = BM25Index()
+        index.build([("water-a", "آب"), ("water-b", "آب دریا")])
+        results = index.search("آب", allowed_doc_ids={"water-b"})
+        self.assertEqual([result.chunk_id for result in results], ["water-b"])
+
 
 if __name__ == "__main__":
     unittest.main()

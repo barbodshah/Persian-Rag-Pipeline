@@ -38,6 +38,8 @@ class DenseIndexTests(unittest.TestCase):
             rebuilt.validate_documents(documents)
             with self.assertRaisesRegex(ValueError, "does not match"):
                 rebuilt.validate_documents([("water", "changed"), ("atom", "اتم عنصر")])
+            filtered = rebuilt.search([2.0, 0.0, 1.0], allowed_doc_ids={"atom"})
+            self.assertEqual([result.chunk_id for result in filtered], ["atom"])
 
 
 if __name__ == "__main__":

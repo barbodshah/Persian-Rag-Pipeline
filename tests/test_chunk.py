@@ -21,6 +21,8 @@ class ChunkingTests(unittest.TestCase):
         _, chunks = build_chunks([page], child_target=240, child_max=320, overlap=40)
         self.assertTrue(chunks)
         self.assertLessEqual(max(chunk.token_count for chunk in chunks), 320)
+        self.assertTrue(all(chunk.chunk_id.startswith("C110210:") for chunk in chunks))
+        self.assertTrue(all(chunk.book_id == "C110210" for chunk in chunks))
 
 
 if __name__ == "__main__":

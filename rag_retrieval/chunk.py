@@ -21,6 +21,9 @@ class Segment:
     chapter_id: str
     chapter_title: str
     heading: str | None
+    book_id: str
+    book_title: str
+    source_file: str
 
 
 def _classify(text: str) -> str:
@@ -82,6 +85,9 @@ def page_segments(pages: Iterable[PageRecord]) -> list[Segment]:
                         chapter_id=page.chapter_id,
                         chapter_title=page.chapter_title,
                         heading=page.section_heading,
+                        book_id=page.book_id,
+                        book_title=page.book_title,
+                        source_file=page.source_file,
                     )
                 )
     return segments
@@ -133,12 +139,16 @@ def build_chunks(
     child_number = 0
 
     for parent_number, parent_group in enumerate(parent_groups, start=1):
-        parent_id = f"parent-{parent_number:04d}"
+        book_id = parent_group[0].book_id
+        parent_id = f"{book_id}:parent-{parent_number:04d}"
         parent_text = "\n".join(segment.text for segment in parent_group)
         parent_pages = sorted({segment.pdf_page for segment in parent_group})
         parents.append(
             {
                 "parent_id": parent_id,
+                "book_id": book_id,
+                "book_title": parent_group[0].book_title,
+                "source_file": parent_group[0].source_file,
                 "chapter_id": parent_group[0].chapter_id,
                 "chapter_title": parent_group[0].chapter_title,
                 "pdf_pages": parent_pages,
@@ -163,7 +173,7 @@ def build_chunks(
             headings = [segment.heading for segment in group if segment.heading]
             children.append(
                 ChunkRecord(
-                    chunk_id=f"chunk-{child_number:04d}",
+                    chunk_id=f"{book_id}:chunk-{child_number:04d}",
                     parent_id=parent_id,
                     chapter_id=group[0].chapter_id,
                     chapter_title=group[0].chapter_title,
@@ -174,6 +184,9 @@ def build_chunks(
                     text=text,
                     search_text=normalize_search(text),
                     token_count=token_count(text),
+                    book_id=book_id,
+                    book_title=group[0].book_title,
+                    source_file=group[0].source_file,
                 )
             )
     return parents, children

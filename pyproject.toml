@@ -1,0 +1,18 @@
+[project]
+name = "persian-book-retrieval"
+version = "0.1.0"
+description = "Inspectable Persian PDF extraction, chunking, and BM25 retrieval baseline"
+requires-python = ">=3.10"
+dependencies = [
+    "pypdf>=6.0,<7.0",
+]
+
+[project.scripts]
+book-retrieval = "rag_retrieval.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["rag_retrieval*"]

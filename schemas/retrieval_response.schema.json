@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.example/schemas/retrieval-response-v1.json",
+  "title": "Book retrieval response",
+  "type": "object",
+  "required": ["schema_version", "query", "retrieval", "results", "llm_context"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "query": {
+      "type": "object",
+      "required": ["original", "normalized"],
+      "properties": {
+        "original": {"type": "string"},
+        "normalized": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "retrieval": {
+      "type": "object",
+      "required": ["mode", "top_k", "candidate_k", "rrf_k", "embedding_model", "reranker"],
+      "properties": {
+        "mode": {"enum": ["bm25", "dense", "hybrid"]},
+        "top_k": {"type": "integer", "minimum": 1},
+        "candidate_k": {"type": "integer", "minimum": 1},
+        "rrf_k": {"type": "integer", "minimum": 1},
+        "embedding_model": {"type": ["string", "null"]},
+        "reranker": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rank", "chunk_id", "parent_id", "score", "scores", "source", "text"],
+        "properties": {
+          "rank": {"type": "integer", "minimum": 1},
+          "chunk_id": {"type": "string"},
+          "parent_id": {"type": "string"},
+          "score": {"type": "number"},
+          "scores": {"type": "object"},
+          "source": {
+            "type": "object",
+            "required": ["document_id", "chapter_id", "chapter_title", "pdf_pages", "book_pages", "content_type"],
+            "properties": {
+              "document_id": {"type": "string"},
+              "chapter_id": {"type": "string"},
+              "chapter_title": {"type": "string"},
+              "section_heading": {"type": ["string", "null"]},
+              "pdf_pages": {"type": "array", "items": {"type": "integer"}},
+              "book_pages": {"type": "array", "items": {"type": "integer"}},
+              "content_type": {"type": "string"}
+            }
+          },
+          "text": {"type": "string"}
+        }
+      }
+    },
+    "llm_context": {
+      "type": "object",
+      "required": ["format", "passages"],
+      "properties": {
+        "format": {"const": "numbered-passages-v1"},
+        "passages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["citation_id", "parent_id", "chapter_title", "pdf_pages", "book_pages", "text"],
+            "properties": {
+              "citation_id": {"type": "string"},
+              "parent_id": {"type": "string"},
+              "chapter_title": {"type": "string"},
+              "pdf_pages": {"type": "array", "items": {"type": "integer"}},
+              "book_pages": {"type": "array", "items": {"type": "integer"}},
+              "text": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

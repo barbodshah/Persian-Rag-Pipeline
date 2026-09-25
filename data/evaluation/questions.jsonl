@@ -1,0 +1,30 @@
+{"id":"q001","question":"ایزوتوپ های یک عنصر چه شباهت و چه تفاوتی با یکدیگر دارند؟","category":"definition","relevant_pdf_pages":[15,16],"answer_hint":"عدد اتمی یکسان و جرم یا تعداد نوترون متفاوت"}
+{"id":"q002","question":"عدد اتمی چه ارتباطی با خواص شیمیایی عنصر دارد؟","category":"concept","relevant_pdf_pages":[15],"answer_hint":"خواص شیمیایی هر عنصر به عدد اتمی آن وابسته است"}
+{"id":"q003","question":"رادیوایزوتوپ تکنسیم چه کاربردی در پزشکی دارد؟","category":"application","relevant_pdf_pages":[17],"answer_hint":"تصویربرداری پزشکی از جمله بررسی تیروئید"}
+{"id":"q004","question":"عنصرها در جدول دوره ای جدید بر چه اساسی مرتب شده اند؟","category":"definition","relevant_pdf_pages":[22],"answer_hint":"افزایش عدد اتمی"}
+{"id":"q005","question":"تفاوت گروه و دوره در جدول تناوبی چیست؟","category":"comparison","relevant_pdf_pages":[22],"answer_hint":"ردیف افقی دوره و ستون شامل عنصرهای با خواص مشابه گروه است"}
+{"id":"q006","question":"الکترون های ظرفیت کدام الکترون های اتم هستند؟","category":"definition","relevant_pdf_pages":[43,44],"answer_hint":"الکترون های آخرین لایه الکترونی"}
+{"id":"q007","question":"بین شماره گروه و تعداد الکترون های ظرفیت چه رابطه ای وجود دارد؟","category":"concept","relevant_pdf_pages":[43,45],"answer_hint":"برای عنصرهای اصلی از شماره گروه می توان تعداد الکترون ظرفیت را نتیجه گرفت"}
+{"id":"q008","question":"پیوند یونی چگونه میان کلسیم و اکسیژن تشکیل می شود؟","category":"process","relevant_pdf_pages":[48],"answer_hint":"داد و ستد الکترون و تشکیل یون های با بار مخالف"}
+{"id":"q009","question":"چرا ترکیب یونی از نظر بار الکتریکی خنثی است؟","category":"concept","relevant_pdf_pages":[49],"answer_hint":"مجموع بار کاتیون ها و آنیون ها برابر و مخالف است"}
+{"id":"q010","question":"فرمول شیمیایی ترکیب یونی را چگونه از بار یون ها می نویسیم؟","category":"process","relevant_pdf_pages":[49,50],"answer_hint":"نسبت یون ها طوری انتخاب می شود که مجموع بار صفر شود"}
+{"id":"q011","question":"هواکره چیست و جاذبه زمین چه نقشی در نگهداری آن دارد؟","category":"definition","relevant_pdf_pages":[56],"answer_hint":"لایه گازی پیرامون زمین که جاذبه مانع خروج گازهای آن می شود"}
+{"id":"q012","question":"با افزایش ارتفاع از سطح زمین فشار هوا چه تغییری می کند؟","category":"trend","relevant_pdf_pages":[57],"answer_hint":"فشار هوا کاهش می یابد"}
+{"id":"q013","question":"تغییرات آب و هوایی عمدتا در کدام لایه هواکره رخ می دهد؟","category":"fact","relevant_pdf_pages":[57,58],"answer_hint":"تروپوسفر"}
+{"id":"q014","question":"اجزای هوای مایع را چگونه با تقطیر جزء به جزء جدا می کنند؟","category":"process","relevant_pdf_pages":[59,60],"answer_hint":"جداسازی بر پایه تفاوت نقطه جوش اجزای هوا"}
+{"id":"q015","question":"قانون پایستگی جرم در واکنش شیمیایی چه می گوید؟","category":"definition","relevant_pdf_pages":[66,67,68],"answer_hint":"جرم کل و شمار اتم های هر عنصر در واکنش ثابت می ماند"}
+{"id":"q016","question":"چگونه معادله سوختن کامل پروپان را موازنه می کنیم؟","category":"equation","relevant_pdf_pages":[69],"answer_hint":"برابر کردن تعداد اتم های کربن هیدروژن و اکسیژن در دو طرف"}
+{"id":"q017","question":"کاتالیزگر چه اثری بر یک واکنش شیمیایی دارد؟","category":"definition","relevant_pdf_pages":[67],"answer_hint":"سرعت واکنش را افزایش می دهد"}
+{"id":"q018","question":"سوختن کامل و ناقص مواد هیدروکربنی چه تفاوتی دارند؟","category":"comparison","relevant_pdf_pages":[63,64,65],"answer_hint":"کمبود اکسیژن در سوختن ناقص باعث تولید کربن مونوکسید یا دوده می شود"}
+{"id":"q019","question":"اثر گلخانه ای چگونه باعث گرم شدن زمین می شود؟","category":"concept","relevant_pdf_pages":[82,83],"answer_hint":"جذب و بازتاب دوباره پرتوهای گرمایی توسط گازهای گلخانه ای"}
+{"id":"q020","question":"قانون آووگادرو درباره حجم برابر گازها چه می گوید؟","category":"definition","relevant_pdf_pages":[93],"answer_hint":"حجم های برابر گازها در دما و فشار یکسان تعداد مولکول برابر دارند"}
+{"id":"q021","question":"حجم مولی گازها در شرایط STP چه مفهومی دارد؟","category":"definition","relevant_pdf_pages":[93,94],"answer_hint":"حجم یک مول گاز در دما و فشار استاندارد"}
+{"id":"q022","question":"قسمت در میلیون یا ppm برای بیان غلظت چه محلول هایی مناسب است؟","category":"definition","relevant_pdf_pages":[112,113],"answer_hint":"محلول های بسیار رقیق"}
+{"id":"q023","question":"درصد جرمی یک محلول چگونه محاسبه می شود؟","category":"calculation","relevant_pdf_pages":[113,114],"answer_hint":"جرم حل شونده تقسیم بر جرم محلول ضرب در صد"}
+{"id":"q024","question":"غلظت مولی یا مولاریته محلول به چه معناست؟","category":"definition","relevant_pdf_pages":[116,117],"answer_hint":"مول حل شونده در یک لیتر محلول"}
+{"id":"q025","question":"انحلال پذیری یک ماده چگونه تعریف می شود؟","category":"definition","relevant_pdf_pages":[118],"answer_hint":"بیشترین مقدار حل شونده که در مقدار معین حلال محلول سیرشده می سازد"}
+{"id":"q026","question":"افزایش دما چه اثری بر انحلال پذیری نمک ها در آب دارد؟","category":"trend","relevant_pdf_pages":[119],"answer_hint":"اثر به نوع نمک بستگی دارد و برای همه یکسان نیست"}
+{"id":"q027","question":"چرا مولکول آب قطبی است؟","category":"concept","relevant_pdf_pages":[122],"answer_hint":"توزیع نامتقارن بار و شکل خمیده مولکول"}
+{"id":"q028","question":"پیوند هیدروژنی میان مولکول های آب چگونه ایجاد می شود؟","category":"concept","relevant_pdf_pages":[124,125],"answer_hint":"جاذبه سر مثبت یک مولکول و سر منفی مولکول همسایه"}
+{"id":"q029","question":"چرا چگالی یخ از آب مایع کمتر است؟","category":"concept","relevant_pdf_pages":[126],"answer_hint":"ساختار باز و حفره دار ناشی از پیوندهای هیدروژنی"}
+{"id":"q030","question":"در روش اسمز معکوس چگونه از آب شور آب شیرین تهیه می شود؟","category":"process","relevant_pdf_pages":[138,139,140],"answer_hint":"اعمال فشار و عبور آب از غشای نیمه تراوا برای کاهش یون ها"}

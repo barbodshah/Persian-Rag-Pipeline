@@ -194,7 +194,7 @@ def _benchmark(args: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Persian textbook retrieval baseline")
+    parser = argparse.ArgumentParser(description="Persian textbook hybrid retrieval pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build = subparsers.add_parser("build", help="Extract, chunk, and build the BM25 index")

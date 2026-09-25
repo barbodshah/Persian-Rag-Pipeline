@@ -1,7 +1,7 @@
 [project]
 name = "persian-book-retrieval"
-version = "0.1.0"
-description = "Inspectable Persian PDF extraction, chunking, and BM25 retrieval baseline"
+version = "0.2.0"
+description = "Inspectable Persian PDF extraction and hybrid lexical-semantic retrieval"
 requires-python = ">=3.10"
 dependencies = [
     "pypdf>=6.0,<7.0",

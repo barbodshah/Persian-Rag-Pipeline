@@ -16,6 +16,7 @@ from .answering import (
 )
 from .benchmark import run_benchmark
 from .bm25 import BM25Index
+from .book_catalog import load_book_catalog
 from .chunk import build_chunks
 from .dense import DenseIndex
 from .embeddings import EmbeddingConfig, EmbeddingError, MetisEmbeddingClient
@@ -237,7 +238,13 @@ def _answer(args: argparse.Namespace) -> None:
         embedding_config = EmbeddingConfig.from_env(env_path)
         assert engine.dense is not None
         embeddings = MetisEmbeddingClient(embedding_config.with_model(engine.dense.model))
-    pipeline = StudentAnswerPipeline(engine, embeddings, chat, answer_config)
+    pipeline = StudentAnswerPipeline(
+        engine,
+        embeddings,
+        chat,
+        answer_config,
+        book_titles=load_book_catalog(Path(args.book_catalog)),
+    )
     response = pipeline.answer(
         text=args.question or "",
         image_path=Path(args.image) if args.image else None,
@@ -374,6 +381,7 @@ def build_parser() -> argparse.ArgumentParser:
     answer.add_argument("--rrf-k", type=int, default=60)
     answer.add_argument("--diversity-penalty", type=float, default=0.12)
     answer.add_argument("--env-file", default=".env")
+    answer.add_argument("--book-catalog", default="rag_retrieval/book_catalog.json")
     answer.add_argument("--book", help="Only retrieve from this book_id; omitted means all books")
     answer.set_defaults(handler=_answer)
 

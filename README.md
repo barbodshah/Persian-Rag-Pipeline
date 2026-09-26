@@ -155,6 +155,8 @@ python -m rag_retrieval.cli answer "سؤال سوم را حل کن" --image path
 
 For a normal question, the whole parsed question is sent to retrieval once. For a question containing multiple statements to evaluate or count, each original statement is sent separately. The final model receives the combined question text, parsed structure, grouped retrieval evidence, and original screenshot. The command returns JSON containing the OCR text, structure, per-query passages, selected models, and final answer.
 
+Student-facing citations use the Persian textbook name and printed book pages, for example `کتاب شیمی دهم، صفحه ۵۶`; internal parent IDs and PDF page numbers are not shown as citations. The editable lookup table is [`rag_retrieval/book_catalog.json`](rag_retrieval/book_catalog.json). It currently maps `C110210` to `کتاب شیمی دهم` and `C110216` to `کتاب زیست شناسی دهم`.
+
 ## Local chat UI
 
 Start the dependency-free local test interface:

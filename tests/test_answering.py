@@ -123,6 +123,9 @@ class StudentAnswerPipelineTests(unittest.TestCase):
         self.assertEqual(result["models"]["ocr"], None)
         self.assertIn("book:p1", result["answer"])
         self.assertEqual([call["model"] for call in chat.calls], ["weak-model", "capable-model"])
+        final_prompt = chat.calls[-1]["messages"][-1]["content"]
+        self.assertIn("[Test Book، صفحه ۱]", final_prompt)
+        self.assertNotIn("book:p1", final_prompt)
 
     def test_screenshot_ocr_and_multiple_statements_are_retrieved_separately(self):
         chat = FakeChat(

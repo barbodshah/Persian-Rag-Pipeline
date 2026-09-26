@@ -18,4 +18,4 @@ build-backend = "setuptools.build_meta"
 include = ["rag_retrieval*"]
 
 [tool.setuptools.package-data]
-rag_retrieval = ["web_assets/*"]
+rag_retrieval = ["web_assets/*", "book_catalog.json"]

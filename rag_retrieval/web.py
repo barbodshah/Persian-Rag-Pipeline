@@ -18,6 +18,7 @@ from .answering import (
     StudentAnswerPipeline,
 )
 from .bm25 import BM25Index
+from .book_catalog import load_book_catalog
 from .dense import DenseIndex
 from .embeddings import EmbeddingConfig, EmbeddingError, MetisEmbeddingClient
 from .io_utils import read_jsonl
@@ -35,6 +36,7 @@ def build_pipeline(
     parents_path: Path,
     dense_path: Path,
     env_file: Path,
+    book_catalog_path: Path,
 ) -> StudentAnswerPipeline:
     chunks = {item["chunk_id"]: item for item in read_jsonl(chunks_path)}
     parents = {item["parent_id"]: item for item in read_jsonl(parents_path)}
@@ -54,6 +56,7 @@ def build_pipeline(
         MetisEmbeddingClient(embedding_config),
         chat,
         answer_config,
+        book_titles=load_book_catalog(book_catalog_path),
     )
 
 
@@ -136,7 +139,18 @@ def make_handler(pipeline: StudentAnswerPipeline) -> type[BaseHTTPRequestHandler
             elif path == "/app.js":
                 self._asset("app.js", "text/javascript; charset=utf-8")
             elif path == "/api/books":
-                self._json(HTTPStatus.OK, {"books": pipeline.engine.book_ids})
+                self._json(
+                    HTTPStatus.OK,
+                    {
+                        "books": [
+                            {
+                                "id": book_id,
+                                "title": pipeline.book_titles.get(book_id, book_id),
+                            }
+                            for book_id in pipeline.engine.book_ids
+                        ]
+                    },
+                )
             else:
                 self.send_error(HTTPStatus.NOT_FOUND)
 
@@ -169,6 +183,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--chunks", default="artifacts/chunks.jsonl")
     parser.add_argument("--parents", default="artifacts/parents.jsonl")
     parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--book-catalog", default="rag_retrieval/book_catalog.json")
     return parser
 
 
@@ -180,6 +195,7 @@ def main() -> None:
         parents_path=Path(args.parents),
         dense_path=Path(args.dense),
         env_file=Path(args.env_file),
+        book_catalog_path=Path(args.book_catalog),
     )
     server = ThreadingHTTPServer((args.host, args.port), make_handler(pipeline))
     print(f"Student RAG chat is running at http://{args.host}:{args.port}")

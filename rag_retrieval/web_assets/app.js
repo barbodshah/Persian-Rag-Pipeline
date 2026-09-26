@@ -115,7 +115,7 @@ function renderContext(detail) {
     }
     for (const passage of retrieval.passages) {
       const card = element("article", "passage");
-      card.appendChild(element("strong", "", passage.citation_id));
+      card.appendChild(element("strong", "", passage.citation_label || passage.book_title));
       const pages = passage.book_pages?.join(", ") || "—";
       card.appendChild(element("small", "", `${passage.chapter_title} · pages ${pages}`));
       card.appendChild(element("div", "", passage.text));
@@ -149,8 +149,8 @@ async function loadBooks() {
     const data = await response.json();
     for (const book of data.books || []) {
       const option = document.createElement("option");
-      option.value = book;
-      option.textContent = book;
+      option.value = book.id;
+      option.textContent = `${book.title} (${book.id})`;
       bookSelect.appendChild(option);
     }
   } catch (_) {

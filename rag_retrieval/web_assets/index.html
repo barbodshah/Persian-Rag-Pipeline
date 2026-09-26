@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student RAG Chat</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <div>
+          <strong>Student RAG</strong>
+          <span>Textbook-grounded answers</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="button ghost" id="new-chat" type="button">New chat</button>
+        <button class="button" id="toggle-inspector" type="button" aria-expanded="false" aria-controls="inspector">
+          Show details
+        </button>
+      </div>
+    </header>
+
+    <main class="chat-panel">
+      <div class="controls" aria-label="Retrieval settings">
+        <label>
+          <span>Book</span>
+          <select id="book-select">
+            <option value="">All books</option>
+          </select>
+        </label>
+        <label>
+          <span>Retrieval</span>
+          <select id="mode-select">
+            <option value="hybrid">Hybrid</option>
+            <option value="bm25">BM25</option>
+            <option value="dense">Dense</option>
+          </select>
+        </label>
+      </div>
+
+      <section class="messages" id="messages" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon" aria-hidden="true">✦</div>
+          <h1>Ask a textbook question</h1>
+          <p>Type a question, attach a screenshot, or use both. Multiple statements are retrieved separately.</p>
+        </div>
+      </section>
+
+      <form class="composer" id="composer">
+        <div class="attachment-preview" id="attachment-preview" hidden>
+          <img id="preview-image" alt="Selected screenshot preview">
+          <div>
+            <strong id="preview-name"></strong>
+            <span id="preview-size"></span>
+          </div>
+          <button class="icon-button" id="remove-image" type="button" aria-label="Remove screenshot">×</button>
+        </div>
+        <div class="composer-row">
+          <label class="attach-button" for="image-input" aria-label="Attach screenshot" title="Attach screenshot">
+            <span aria-hidden="true">＋</span>
+          </label>
+          <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          <textarea id="message-input" rows="1" placeholder="Ask a question or add a note about the screenshot…" aria-label="Question"></textarea>
+          <button class="send-button" id="send-button" type="submit">Send</button>
+        </div>
+        <p class="composer-note">Enter to send · Shift+Enter for a new line</p>
+      </form>
+    </main>
+
+    <aside class="inspector" id="inspector" hidden>
+      <div class="inspector-header">
+        <div>
+          <strong>Pipeline details</strong>
+          <span id="inspector-subtitle">Latest answer</span>
+        </div>
+        <button class="icon-button" id="close-inspector" type="button" aria-label="Close details">×</button>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Pipeline details">
+        <button class="tab active" type="button" role="tab" data-tab="context" aria-selected="true">Context</button>
+        <button class="tab" type="button" role="tab" data-tab="ocr" aria-selected="false">OCR</button>
+        <button class="tab" type="button" role="tab" data-tab="json" aria-selected="false">JSON</button>
+      </div>
+      <div class="inspector-content" id="inspector-content">
+        <div class="empty-detail">Send a question to inspect its pipeline output.</div>
+      </div>
+    </aside>
+  </div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

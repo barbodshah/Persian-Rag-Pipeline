@@ -154,6 +154,16 @@ python -m rag_retrieval.cli answer "سؤال سوم را حل کن" --image path
 
 For a normal question, the whole parsed question is sent to retrieval once. For a question containing multiple statements to evaluate or count, each original statement is sent separately. The final model receives the combined question text, parsed structure, grouped retrieval evidence, and original screenshot. The command returns JSON containing the OCR text, structure, per-query passages, selected models, and final answer.
 
+## Local chat UI
+
+Start the dependency-free local test interface:
+
+```powershell
+python -m rag_retrieval.web
+```
+
+Then open `http://127.0.0.1:8000`. The interface accepts text and screenshot questions, keeps recent messages available to the answer model, and offers an optional details drawer for the OCR transcription, weak-model JSON, and retrieved context grouped by query or statement. Use `--host` or `--port` to change the bind address.
+
 ## Evaluation
 
 Evaluate direct BM25:

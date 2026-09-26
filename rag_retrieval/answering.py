@@ -141,6 +141,23 @@ def image_data_url(path: Path) -> str:
     return f"data:{mime_type};base64,{encoded}"
 
 
+def validate_image_data_url(value: str) -> str:
+    prefixes = (
+        "data:image/png;base64,",
+        "data:image/jpeg;base64,",
+        "data:image/webp;base64,",
+        "data:image/gif;base64,",
+    )
+    if not value.startswith(prefixes):
+        raise AnsweringError("Screenshot must be a PNG, JPEG, WEBP, or GIF data URL.")
+    try:
+        encoded = value.split(",", 1)[1]
+        base64.b64decode(encoded, validate=True)
+    except (IndexError, ValueError) as error:
+        raise AnsweringError("Screenshot data is not valid base64.") from error
+    return value
+
+
 def _json_object(text: str) -> dict[str, Any]:
     candidate = text.strip()
     if candidate.startswith("```"):
@@ -317,11 +334,17 @@ class StudentAnswerPipeline:
         *,
         text: str = "",
         image_path: Path | None = None,
+        image_data: str | None = None,
+        history: list[dict[str, str]] | None = None,
         book_id: str | None = None,
         options: RetrievalOptions | None = None,
     ) -> dict[str, Any]:
+        if image_path is not None and image_data is not None:
+            raise AnsweringError("Provide image_path or image_data, not both.")
         typed_text = text.strip()
         data_url = image_data_url(image_path) if image_path is not None else None
+        if image_data is not None:
+            data_url = validate_image_data_url(image_data)
         ocr_text = self._ocr(data_url) if data_url is not None else ""
         if typed_text and ocr_text:
             combined_text = typed_text + "\n\n" + ocr_text
@@ -338,9 +361,17 @@ class StudentAnswerPipeline:
             book_id=book_id,
             options=retrieval_options,
         )
+        recent_history = []
+        for item in (history or [])[-8:]:
+            role = item.get("role", "")
+            content = item.get("content", "")
+            if role in {"user", "assistant"} and isinstance(content, str) and content.strip():
+                recent_history.append({"role": role, "content": content.strip()[:6000]})
         prompt = (
             "# Original question text\n"
             + combined_text
+            + "\n\n# Recent conversation\n"
+            + (json.dumps(recent_history, ensure_ascii=False, indent=2) if recent_history else "[]")
             + "\n\n# Parsed structure\n"
             + json.dumps(structure, ensure_ascii=False, indent=2)
             + "\n\n# Retrieved textbook evidence\n"
@@ -367,12 +398,18 @@ class StudentAnswerPipeline:
             "input": {
                 "typed_text": typed_text or None,
                 "ocr_text": ocr_text or None,
-                "image": str(image_path) if image_path is not None else None,
+                "image": (
+                    str(image_path)
+                    if image_path is not None
+                    else "inline-upload"
+                    if image_data is not None
+                    else None
+                ),
             },
             "structure": structure,
             "retrievals": retrievals,
             "models": {
-                "ocr": self.config.ocr_model if image_path is not None else None,
+                "ocr": self.config.ocr_model if data_url is not None else None,
                 "structure": self.config.weak_model,
                 "answer": self.config.capable_model,
             },

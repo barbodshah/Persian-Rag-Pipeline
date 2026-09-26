@@ -1,11 +1,13 @@
 import tempfile
 import unittest
+import base64
 from pathlib import Path
 
 from rag_retrieval.answering import (
     AnsweringConfig,
     AnsweringError,
     StudentAnswerPipeline,
+    validate_image_data_url,
     validate_structure,
 )
 from rag_retrieval.retrieval import RetrievalOptions
@@ -72,6 +74,10 @@ def config():
 
 
 class StructureValidationTests(unittest.TestCase):
+    def test_invalid_inline_image_is_rejected(self):
+        with self.assertRaisesRegex(AnsweringError, "base64"):
+            validate_image_data_url("data:image/png;base64,not-valid-@@")
+
     def test_single_question_discards_statements(self):
         value = validate_structure(
             {
@@ -154,6 +160,27 @@ class StudentAnswerPipelineTests(unittest.TestCase):
         final_content = chat.calls[-1]["messages"][-1]["content"]
         self.assertIsInstance(final_content, list)
         self.assertEqual(final_content[-1]["type"], "image_url")
+
+    def test_inline_screenshot_is_sent_to_ocr_and_final_model(self):
+        chat = FakeChat(
+            [
+                "آب چیست؟",
+                '{"type":"single","question_text":"آب چیست؟","statements":[]}',
+                "پاسخ",
+            ]
+        )
+        engine = FakeEngine()
+        pipeline = StudentAnswerPipeline(engine, None, chat, config())
+        encoded = base64.b64encode(b"test-image").decode("ascii")
+
+        result = pipeline.answer(
+            image_data=f"data:image/png;base64,{encoded}",
+            options=RetrievalOptions(mode="bm25"),
+        )
+
+        self.assertEqual(result["input"]["image"], "inline-upload")
+        self.assertEqual(result["models"]["ocr"], "ocr-model")
+        self.assertEqual(chat.calls[0]["messages"][-1]["content"][-1]["type"], "image_url")
 
 
 if __name__ == "__main__":

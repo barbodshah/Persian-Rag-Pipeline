@@ -8,6 +8,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .answering import (
+    AnsweringConfig,
+    AnsweringError,
+    OpenAICompatibleChatClient,
+    StudentAnswerPipeline,
+)
 from .benchmark import run_benchmark
 from .bm25 import BM25Index
 from .chunk import build_chunks
@@ -211,6 +217,39 @@ def _retrieve(args: argparse.Namespace) -> None:
     print(json.dumps(response, ensure_ascii=False, indent=2))
 
 
+def _answer(args: argparse.Namespace) -> None:
+    dense_path = Path(args.dense) if args.mode in {"dense", "hybrid"} else None
+    engine = _load_engine(Path(args.index), Path(args.chunks), Path(args.parents), dense_path)
+    selected_book = args.book or None
+    if selected_book is not None and selected_book not in engine.book_ids:
+        raise ValueError(
+            f"Unknown book_id {selected_book!r}. Available books: {', '.join(engine.book_ids)}"
+        )
+
+    env_path = Path(args.env_file) if args.env_file else None
+    answer_config = AnsweringConfig.from_env(env_path)
+    chat = OpenAICompatibleChatClient(answer_config)
+    embeddings = None
+    if dense_path is not None:
+        embedding_config = EmbeddingConfig.from_env(env_path)
+        assert engine.dense is not None
+        embeddings = MetisEmbeddingClient(embedding_config.with_model(engine.dense.model))
+    pipeline = StudentAnswerPipeline(engine, embeddings, chat, answer_config)
+    response = pipeline.answer(
+        text=args.question or "",
+        image_path=Path(args.image) if args.image else None,
+        book_id=selected_book,
+        options=RetrievalOptions(
+            top_k=args.top_k,
+            candidate_k=args.candidate_k,
+            rrf_k=args.rrf_k,
+            diversity_penalty=args.diversity_penalty,
+            mode=args.mode,
+        ),
+    )
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+
+
 def _evaluate_hybrid(args: argparse.Namespace) -> None:
     dense_path = Path(args.dense) if args.mode in {"dense", "hybrid"} else None
     engine = _load_engine(Path(args.index), Path(args.chunks), Path(args.parents), dense_path)
@@ -316,6 +355,25 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve.add_argument("--book", help="Only retrieve from this book_id; omitted means all books")
     retrieve.set_defaults(handler=_retrieve)
 
+    answer = subparsers.add_parser(
+        "answer",
+        help="OCR an optional screenshot, retrieve textbook context, and answer the question",
+    )
+    answer.add_argument("question", nargs="?", default="", help="Typed question or image caption")
+    answer.add_argument("--image", help="PNG, JPEG, WEBP, or GIF screenshot of the question")
+    answer.add_argument("--mode", choices=("bm25", "dense", "hybrid"), default="hybrid")
+    answer.add_argument("--index", default="artifacts/bm25_index.json.gz")
+    answer.add_argument("--dense", default="artifacts/dense_index.json.gz")
+    answer.add_argument("--chunks", default="artifacts/chunks.jsonl")
+    answer.add_argument("--parents", default="artifacts/parents.jsonl")
+    answer.add_argument("--top-k", type=int, default=3)
+    answer.add_argument("--candidate-k", type=int, default=30)
+    answer.add_argument("--rrf-k", type=int, default=60)
+    answer.add_argument("--diversity-penalty", type=float, default=0.12)
+    answer.add_argument("--env-file", default=".env")
+    answer.add_argument("--book", help="Only retrieve from this book_id; omitted means all books")
+    answer.set_defaults(handler=_answer)
+
     hybrid_eval = subparsers.add_parser("evaluate-retrieval", help="Evaluate the stable retrieval interface")
     hybrid_eval.add_argument("--mode", choices=("bm25", "dense", "hybrid"), default="hybrid")
     hybrid_eval.add_argument("--index", default="artifacts/bm25_index.json.gz")
@@ -350,7 +408,7 @@ def main() -> None:
     args = parser.parse_args()
     try:
         args.handler(args)
-    except (EmbeddingError, ValueError) as error:
+    except (AnsweringError, EmbeddingError, ValueError) as error:
         parser.error(str(error))
 
 

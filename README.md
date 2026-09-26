@@ -2,7 +2,7 @@
 
 The pipeline indexes every PDF in a corpus folder. It extracts and normalizes each book, creates source-aware hierarchical chunks, builds shared lexical and dense indexes, combines their candidates, and returns cited parent passages that identify the originating book.
 
-Answer generation is not implemented. A true cross-encoder is also not active: the current `weighted-hybrid-v1` stage is a deterministic score combiner followed by overlap-based diversity filtering. An experimental provider scaffold exists in `rag_retrieval/reranker.py`, but it is not imported by the CLI or retrieval engine and does not affect the reported results.
+The optional student-answer pipeline accepts typed text, a question screenshot, or both. It transcribes screenshots, uses a low-cost model to distinguish a normal question from a multiple-statement question, retrieves each statement separately when necessary, and gives the original question, screenshot, and retrieved textbook evidence to a capable model. The retrieval interface remains independently usable. A true cross-encoder is not active: `weighted-hybrid-v1` is a deterministic score combiner followed by overlap-based diversity filtering.
 
 ## Current pipeline
 
@@ -21,6 +21,12 @@ Question
  → overlap-based diversity selection
  → ranked child chunks
  → de-duplicated parent passages for future LLM context
+
+Student text and/or screenshot
+ → screenshot OCR with METIS_OCR_MODEL
+ → question/statement JSON with METIS_WEAK_MODEL
+ → one retrieval for a normal question, or one retrieval per statement
+ → grounded answer with METIS_CAPABLE_MODEL
 ```
 
 The active weighted score combines normalized dense similarity, BM25, reciprocal-rank-fusion score, and query-token coverage. It is a heuristic reranker, not a learned cross-encoder.
@@ -85,6 +91,9 @@ Copy `.env.example` to the ignored `.env` file or export the variables directly:
 $env:METIS_API_KEY="your-real-key"
 $env:METIS_BASE_URL="https://api.metisai.ir/openai/v1"
 $env:METIS_EMBEDDING_MODEL="text-embedding-3-small"
+$env:METIS_OCR_MODEL="gpt-4o-mini"
+$env:METIS_WEAK_MODEL="gpt-4.1-nano"
+$env:METIS_CAPABLE_MODEL="gpt-4.1"
 ```
 
 Build the dense index:
@@ -122,6 +131,28 @@ Every result includes `book_id`, `book_title`, `source_file`, chunk/parent IDs, 
 `retrieve` returns diagnostic child results plus unique parent passages under `llm_context`. The response contract is documented in [docs/retrieval_contract.md](docs/retrieval_contract.md) and [schemas/retrieval_response.schema.json](schemas/retrieval_response.schema.json).
 
 The older `search` command performs direct BM25 lookup only and does not emit the full retrieval contract.
+
+## Answer a student question
+
+Answer typed text:
+
+```powershell
+python -m rag_retrieval.cli answer "پیوند هیدروژنی چگونه تشکیل می‌شود؟" --book C110210
+```
+
+Answer a screenshot:
+
+```powershell
+python -m rag_retrieval.cli answer --image path/to/question.png --book C110210
+```
+
+A typed caption can accompany a screenshot and is appended to the OCR transcription:
+
+```powershell
+python -m rag_retrieval.cli answer "سؤال سوم را حل کن" --image path/to/page.png --book C110210
+```
+
+For a normal question, the whole parsed question is sent to retrieval once. For a question containing multiple statements to evaluate or count, each original statement is sent separately. The final model receives the combined question text, parsed structure, grouped retrieval evidence, and original screenshot. The command returns JSON containing the OCR text, structure, per-query passages, selected models, and final answer.
 
 ## Evaluation
 

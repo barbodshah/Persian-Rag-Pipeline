@@ -228,7 +228,10 @@ def _answer(args: argparse.Namespace) -> None:
 
     env_path = Path(args.env_file) if args.env_file else None
     answer_config = AnsweringConfig.from_env(env_path)
-    chat = OpenAICompatibleChatClient(answer_config)
+    chat = OpenAICompatibleChatClient(
+        answer_config,
+        model_base_urls={answer_config.ocr_model: answer_config.ocr_base_url or answer_config.base_url},
+    )
     embeddings = None
     if dense_path is not None:
         embedding_config = EmbeddingConfig.from_env(env_path)

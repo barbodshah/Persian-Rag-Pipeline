@@ -39,6 +39,7 @@ class AnsweringConfig:
     ocr_model: str
     weak_model: str
     capable_model: str
+    ocr_base_url: str | None = None
     timeout_seconds: float = 120.0
     max_retries: int = 3
 
@@ -49,6 +50,9 @@ class AnsweringConfig:
         values = {
             "METIS_API_KEY": os.environ.get("METIS_API_KEY", "").strip(),
             "METIS_BASE_URL": os.environ.get("METIS_BASE_URL", "").strip(),
+            "METIS_DEEPSEEK_BASE_URL": os.environ.get(
+                "METIS_DEEPSEEK_BASE_URL", ""
+            ).strip(),
             "METIS_OCR_MODEL": os.environ.get("METIS_OCR_MODEL", "").strip(),
             "METIS_WEAK_MODEL": os.environ.get("METIS_WEAK_MODEL", "").strip(),
             "METIS_CAPABLE_MODEL": os.environ.get("METIS_CAPABLE_MODEL", "").strip(),
@@ -64,6 +68,7 @@ class AnsweringConfig:
         return cls(
             api_key=values["METIS_API_KEY"],
             base_url=values["METIS_BASE_URL"].rstrip("/"),
+            ocr_base_url=values["METIS_DEEPSEEK_BASE_URL"].rstrip("/"),
             ocr_model=values["METIS_OCR_MODEL"],
             weak_model=values["METIS_WEAK_MODEL"],
             capable_model=values["METIS_CAPABLE_MODEL"],
@@ -73,8 +78,13 @@ class AnsweringConfig:
 class OpenAICompatibleChatClient:
     """Small dependency-free client for OpenAI-compatible chat completions."""
 
-    def __init__(self, config: AnsweringConfig) -> None:
+    def __init__(
+        self,
+        config: AnsweringConfig,
+        model_base_urls: dict[str, str] | None = None,
+    ) -> None:
         self.config = config
+        self.model_base_urls = model_base_urls or {}
 
     def complete(
         self,
@@ -91,8 +101,9 @@ class OpenAICompatibleChatClient:
         }
         if response_format is not None:
             body["response_format"] = response_format
+        base_url = self.model_base_urls.get(model, self.config.base_url).rstrip("/")
         request = urllib.request.Request(
-            self.config.base_url + "/chat/completions",
+            base_url + "/chat/completions",
             data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
             headers={
                 "Authorization": "Bearer " + self.config.api_key,

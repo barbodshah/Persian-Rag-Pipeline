@@ -45,10 +45,14 @@ def build_pipeline(
 
     answer_config = AnsweringConfig.from_env(env_file)
     embedding_config = EmbeddingConfig.from_env(env_file).with_model(dense.model)
+    chat = OpenAICompatibleChatClient(
+        answer_config,
+        model_base_urls={answer_config.ocr_model: answer_config.ocr_base_url or answer_config.base_url},
+    )
     return StudentAnswerPipeline(
         engine,
         MetisEmbeddingClient(embedding_config),
-        OpenAICompatibleChatClient(answer_config),
+        chat,
         answer_config,
     )
 

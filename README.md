@@ -91,7 +91,8 @@ Copy `.env.example` to the ignored `.env` file or export the variables directly:
 $env:METIS_API_KEY="your-real-key"
 $env:METIS_BASE_URL="https://api.metisai.ir/openai/v1"
 $env:METIS_EMBEDDING_MODEL="text-embedding-3-small"
-$env:METIS_OCR_MODEL="gpt-4o-mini"
+$env:METIS_DEEPSEEK_BASE_URL="https://api.metisai.ir/deepseek/v1"
+$env:METIS_OCR_MODEL="deepseek-v4-flash"
 $env:METIS_WEAK_MODEL="gpt-4.1-nano"
 $env:METIS_CAPABLE_MODEL="gpt-4.1"
 ```
